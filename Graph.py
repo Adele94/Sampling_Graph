@@ -15,13 +15,13 @@ def divide_graph(Graph_Main):
         Random_Graph[k].append(i)
     return Random_Graph
 
+
+
 def create_and_save_subgraph(G1, k):
     g1 = nx.Graph()
     g1.add_edges_from(G1)
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
-
-
 
 def degree_histogram(G):
     degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence

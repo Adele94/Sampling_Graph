@@ -23,6 +23,7 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
+"""
 def degree_histogram(G):
     degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
     # print "Degree sequence", degree_sequence
@@ -46,7 +47,7 @@ def degree_histogram(G):
     nx.draw_networkx_edges(G, pos, alpha=0.4)
     plt.show()
 
-
+"""
 
 G1 = []
 G2 = []
@@ -73,9 +74,10 @@ plt.show()
 nx.draw(g3)
 plt.savefig("graph_third.png")
 plt.show()
-"""
+
 
 degree_histogram(Graph_Main)
 degree_histogram(g1)
 degree_histogram(g2)
 degree_histogram(g3)
+"""

@@ -47,6 +47,7 @@ def degree_histogram(G):
     plt.show()
 
 
+
 G1 = []
 G2 = []
 G3 = []

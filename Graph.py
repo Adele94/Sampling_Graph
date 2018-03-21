@@ -21,6 +21,8 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
+
+
 def degree_histogram(G):
     degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
     # print "Degree sequence", degree_sequence

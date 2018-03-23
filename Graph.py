@@ -35,15 +35,6 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
-def sampling():
-    print ("sampling")
-    G = nx.Graph()
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
-    print(cluster_coefficient_node(G, 2))
-    print(average_degree(G))
-    print(list(random_walk(graph=G, size=10)))
-
-sampling()
 
 def twitter_sampling():
     G = nx.read_edgelist("edgelistMain", nodetype=int)
@@ -79,13 +70,11 @@ def degree_histogram(G,k,name):
         Gdeg.append(G.degree()[key])
 
     degree_sequence = sorted(Gdeg, reverse=True)  # degree sequence
-    # print "Degree sequence", degree_sequence
     degreeCount = collections.Counter(degree_sequence)
     deg, cnt = zip(*degreeCount.items())
     ax= plt.subplot(2,2,k)
     #fig, ax = plt.subplots()
     plt.bar(deg, cnt, width=0.80, color='b')
-    #plt.title("Degree Histogram")
     plt.title(name)
     plt.ylabel("Count")
     plt.xlabel("Degree")
@@ -101,9 +90,58 @@ def degree_histogram(G,k,name):
     nx.draw_networkx_edges(G, pos, alpha=0.4)
     """
     plt.subplots_adjust(hspace=0.6,wspace=0.4)
-    #plt.subplots_adjust(wspace=0.5)
-    #return plt
-    #plt.show()
+
+
+def degree_histogram_Sampling(G,k,name):
+    degree_sequence = sorted(G, reverse=True)  # degree sequence
+    degreeCount = collections.Counter(degree_sequence)
+    deg, cnt = zip(*degreeCount.items())
+    ax= plt.subplot(2,2,k)
+    #fig, ax = plt.subplots()
+    plt.bar(deg, cnt, width=0.80, color='b')
+    plt.title(name)
+    plt.ylabel("Count")
+    plt.xlabel("Degree")
+    ax.set_xticks([d + 0.4 for d in deg])
+    ax.set_xticklabels(deg)
+    plt.subplots_adjust(hspace=0.6,wspace=0.4)
+
+
+def sampling():
+    G = nx.Graph()
+    G = nx.read_edgelist("edgelistMain", nodetype=int)
+    #print(cluster_coefficient_node(G, 10))
+    #print(average_degree(G))
+    #print("random_walk:")
+    #print(list(random_walk(graph=G, size=10)))
+    return list(random_walk(graph=G, size=30))
+
+def random_walk_graph():
+    G = nx.read_edgelist("edgelistMain", nodetype=int)
+    my_graph= []
+    samp = sampling()
+    for a in samp:
+        my_graph.append(G.degree()[a])
+    return my_graph
+
+def show_random_graphs(Graph_Main):
+    plt.suptitle("Random division")
+    degree_histogram(Graph_Main,1,"Main Graph")
+    degree_histogram(g1,2,"First Graph")
+    degree_histogram(g2,3,"Second Graph")
+    degree_histogram(g3,4,"Third Graph")
+    plt.savefig("Random" + ".png")
+    plt.show()
+
+def show_random_walk_graphs(Graph_Main):
+    plt.suptitle("Random walk division")
+    degree_histogram(Graph_Main,1,"Main Graph")
+    degree_histogram_Sampling(random_walk_graph(),2,"Random walk 1")
+    degree_histogram_Sampling(random_walk_graph(),3,"Random walk 2")
+    degree_histogram_Sampling(random_walk_graph(),4,"Random walk 3")
+    plt.savefig("Random walk" + ".png")
+    plt.show()
+
 
 G1 = []
 G2 = []
@@ -111,15 +149,11 @@ G3 = []
 Random_Graph = [G1, G2, G3]
 Graph_Main = create_main_graph()
 
-plt.suptitle("Random")
 
 Random_Graph = divide_graph(Graph_Main)
 g1 = create_and_save_subgraph(G1, 1)
 g2 = create_and_save_subgraph(G2, 2)
 g3 = create_and_save_subgraph(G3, 3)
 
-degree_histogram(Graph_Main,1,"Main Graph")
-degree_histogram(g1,2,"First Graph")
-degree_histogram(g2,3,"Second Graph")
-degree_histogram(g3,4,"Third Graph")
-plt.show()
+show_random_graphs(Graph_Main)
+show_random_walk_graphs(Graph_Main)

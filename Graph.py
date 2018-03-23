@@ -5,6 +5,7 @@ import collections
 from collections import Counter
 from networkx.readwrite import json_graph
 from random_walk import *
+from pagerank_sampling import *
 from util import *
 
 """
@@ -35,34 +36,23 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
-
-def twitter_sampling():
+def sampling():
+    G = nx.Graph()
     G = nx.read_edgelist("edgelistMain", nodetype=int)
-    print(cluster_coefficient_average(G))
-    print(random_walk_cca(graph=G, size=100000, metropolized=True))
-    print(random_walk_aggregation(graph=G, size=10000, metropolized=True))
+    #print(cluster_coefficient_node(G, 10))
+    #print(average_degree(G))
+    #print("random_walk:")
+    #print(list(random_walk(graph=G, size=10)))
+    return list(random_walk(graph=G, size=30))
 
-#twitter_sampling()
-
-def youtube_sampling():
+def PRsampling():
+    G = nx.Graph()
     G = nx.read_edgelist("edgelistMain", nodetype=int)
-    print(random_walk_cca(graph=G, size=10000))
-    print(random_walk_aggregation(graph=G, size=10000, metropolized=False))
-
-#youtube_sampling()
-
-def youtube_sampling_plot(size):
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
-    nodes = list(random_walk(graph=G, size=size))
-    graph = nx.Graph()
-    graph.add_path(nodes)
-    nx.draw_networkx(G=graph)
-    #nx.draw_random(G=graph)
-    plt.savefig("edgelistMain.ungraph.rw." + str(size) + ".png")
-    plt.show()
-
-#youtube_sampling_plot(10)
-
+    #print(cluster_coefficient_node(G, 10))
+    #print(average_degree(G))
+    #print("random_walk:")
+    #print(list(random_walk(graph=G, size=10)))
+    return list(page_rank_sampling(G,size = 30))
 
 def degree_histogram(G,k,name):
     Gdeg = []
@@ -91,7 +81,6 @@ def degree_histogram(G,k,name):
     """
     plt.subplots_adjust(hspace=0.6,wspace=0.4)
 
-
 def degree_histogram_Sampling(G,k,name):
     degree_sequence = sorted(G, reverse=True)  # degree sequence
     degreeCount = collections.Counter(degree_sequence)
@@ -106,20 +95,18 @@ def degree_histogram_Sampling(G,k,name):
     ax.set_xticklabels(deg)
     plt.subplots_adjust(hspace=0.6,wspace=0.4)
 
-
-def sampling():
-    G = nx.Graph()
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
-    #print(cluster_coefficient_node(G, 10))
-    #print(average_degree(G))
-    #print("random_walk:")
-    #print(list(random_walk(graph=G, size=10)))
-    return list(random_walk(graph=G, size=30))
-
-def random_walk_graph():
+def create_random_walk_graph():
     G = nx.read_edgelist("edgelistMain", nodetype=int)
     my_graph= []
     samp = sampling()
+    for a in samp:
+        my_graph.append(G.degree()[a])
+    return my_graph
+
+def create_PR_walk_graph():
+    G = nx.read_edgelist("edgelistMain", nodetype=int)
+    my_graph= []
+    samp = PRsampling()
     for a in samp:
         my_graph.append(G.degree()[a])
     return my_graph
@@ -136,12 +123,20 @@ def show_random_graphs(Graph_Main):
 def show_random_walk_graphs(Graph_Main):
     plt.suptitle("Random walk division")
     degree_histogram(Graph_Main,1,"Main Graph")
-    degree_histogram_Sampling(random_walk_graph(),2,"Random walk 1")
-    degree_histogram_Sampling(random_walk_graph(),3,"Random walk 2")
-    degree_histogram_Sampling(random_walk_graph(),4,"Random walk 3")
+    degree_histogram_Sampling(create_random_walk_graph(),2,"Random walk 1")
+    degree_histogram_Sampling(create_random_walk_graph(),3,"Random walk 2")
+    degree_histogram_Sampling(create_random_walk_graph(),4,"Random walk 3")
     plt.savefig("Random walk" + ".png")
     plt.show()
 
+def show_PR_walk_graphs(Graph_Main):
+    plt.suptitle("Page Rank walk division")
+    degree_histogram(Graph_Main,1,"Main Graph")
+    degree_histogram_Sampling(create_PR_walk_graph(),2,"Page Rank walk 1")
+    degree_histogram_Sampling(create_PR_walk_graph(),3,"Page Rank walk 2")
+    degree_histogram_Sampling(create_PR_walk_graph(),4,"Page Rank walk 3")
+    plt.savefig("Page Rank walk" + ".png")
+    plt.show()
 
 G1 = []
 G2 = []
@@ -157,3 +152,4 @@ g3 = create_and_save_subgraph(G3, 3)
 
 show_random_graphs(Graph_Main)
 show_random_walk_graphs(Graph_Main)
+show_PR_walk_graphs(Graph_Main)

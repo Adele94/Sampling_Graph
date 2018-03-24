@@ -17,11 +17,11 @@ def create_main_graph():
     return Graph_Main
 """
 
-def create_main_graph():
+def create_main_graph(dataset):
     g_partition = nx.Graph()
     g_partition = nx.random_partition_graph([10, 10, 10, 1], 0.25, 0.5, False)
-    nx.write_edgelist(g_partition, "edgelistMain",data = False)
-    g_partition=nx.read_edgelist("edgelistMain",nodetype= int)
+    nx.write_edgelist(g_partition,dataset ,data = False)
+    g_partition=nx.read_edgelist(dataset,nodetype= int)
     return g_partition
 
 def divide_graph(Graph_Main):
@@ -36,23 +36,23 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
-def sampling():
+def sampling(dataset):
     G = nx.Graph()
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
+    G = nx.read_edgelist(dataset, nodetype=int)
     #print(cluster_coefficient_node(G, 10))
     #print(average_degree(G))
     #print("random_walk:")
     #print(list(random_walk(graph=G, size=10)))
-    return list(random_walk(graph=G, size=30))
+    return list(random_walk(graph=G, size=1000))
 
-def PRsampling():
+def PRsampling(dataset):
     G = nx.Graph()
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
+    G = nx.read_edgelist(dataset, nodetype=int)
     #print(cluster_coefficient_node(G, 10))
     #print(average_degree(G))
     #print("random_walk:")
     #print(list(random_walk(graph=G, size=10)))
-    return list(page_rank_sampling(G,size = 30))
+    return list(page_rank_sampling(G,size = 1000))
 
 def degree_histogram(G,k,name):
     Gdeg = []
@@ -64,11 +64,11 @@ def degree_histogram(G,k,name):
     deg, cnt = zip(*degreeCount.items())
     ax= plt.subplot(2,2,k)
     #fig, ax = plt.subplots()
-    plt.bar(deg, cnt, width=0.80, color='b')
+    plt.bar(deg, cnt,tick_label = None, width=0.80, color='b')
     plt.title(name)
     plt.ylabel("Count")
     plt.xlabel("Degree")
-    ax.set_xticks([d + 0.4 for d in deg])
+    ax.set_xticks([])
     ax.set_xticklabels(deg)
     """
     # draw graph in inset
@@ -79,7 +79,7 @@ def degree_histogram(G,k,name):
     nx.draw_networkx_nodes(G, pos, node_size=20)
     nx.draw_networkx_edges(G, pos, alpha=0.4)
     """
-    plt.subplots_adjust(hspace=0.6,wspace=0.4)
+    plt.subplots_adjust(top = 0.8, hspace=0.6,wspace=0.4)
 
 def degree_histogram_Sampling(G,k,name):
     degree_sequence = sorted(G, reverse=True)  # degree sequence
@@ -91,58 +91,73 @@ def degree_histogram_Sampling(G,k,name):
     plt.title(name)
     plt.ylabel("Count")
     plt.xlabel("Degree")
-    ax.set_xticks([d + 0.4 for d in deg])
+    ax.set_xticks([])
     ax.set_xticklabels(deg)
-    plt.subplots_adjust(hspace=0.6,wspace=0.4)
+    plt.subplots_adjust(top = 0.8,hspace=0.6,wspace=0.4)
 
-def create_random_walk_graph():
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
+def create_random_walk_graph(dataset):
+    G = nx.read_edgelist(dataset, nodetype=int)
     my_graph= []
-    samp = sampling()
+    samp = sampling(dataset)
     for a in samp:
         my_graph.append(G.degree()[a])
     return my_graph
 
-def create_PR_walk_graph():
-    G = nx.read_edgelist("edgelistMain", nodetype=int)
+def create_PR_walk_graph(dataset):
+    G = nx.read_edgelist(dataset, nodetype=int)
     my_graph= []
-    samp = PRsampling()
+    samp = PRsampling(dataset)
     for a in samp:
         my_graph.append(G.degree()[a])
     return my_graph
 
-def show_random_graphs(Graph_Main):
-    plt.suptitle("Random division")
+def show_random_graphs(Graph_Main,dataset):
+    plt.suptitle("Random division \n dataset: " + dataset)
     degree_histogram(Graph_Main,1,"Main Graph")
     degree_histogram(g1,2,"First Graph")
     degree_histogram(g2,3,"Second Graph")
     degree_histogram(g3,4,"Third Graph")
-    plt.savefig("Random" + ".png")
+    plt.savefig("Random "+dataset + ".png")
     plt.show()
 
-def show_random_walk_graphs(Graph_Main):
-    plt.suptitle("Random walk division")
+def show_random_walk_graphs(Graph_Main,dataset):
+    plt.suptitle("Random walk division \n dataset: " + dataset)
     degree_histogram(Graph_Main,1,"Main Graph")
-    degree_histogram_Sampling(create_random_walk_graph(),2,"Random walk 1")
-    degree_histogram_Sampling(create_random_walk_graph(),3,"Random walk 2")
-    degree_histogram_Sampling(create_random_walk_graph(),4,"Random walk 3")
-    plt.savefig("Random walk" + ".png")
+    degree_histogram_Sampling(create_random_walk_graph(dataset),2,"Random walk 1")
+    degree_histogram_Sampling(create_random_walk_graph(dataset),3,"Random walk 2")
+    degree_histogram_Sampling(create_random_walk_graph(dataset),4,"Random walk 3")
+    plt.savefig("Random walk "+dataset + ".png")
     plt.show()
 
-def show_PR_walk_graphs(Graph_Main):
-    plt.suptitle("Page Rank walk division")
+def show_PR_walk_graphs(Graph_Main,dataset):
+    plt.suptitle("Page Rank walk division \n dataset: " + dataset)
     degree_histogram(Graph_Main,1,"Main Graph")
-    degree_histogram_Sampling(create_PR_walk_graph(),2,"Page Rank walk 1")
-    degree_histogram_Sampling(create_PR_walk_graph(),3,"Page Rank walk 2")
-    degree_histogram_Sampling(create_PR_walk_graph(),4,"Page Rank walk 3")
-    plt.savefig("Page Rank walk" + ".png")
+    degree_histogram_Sampling(create_PR_walk_graph(dataset),2,"Page Rank walk 1")
+    degree_histogram_Sampling(create_PR_walk_graph(dataset),3,"Page Rank walk 2")
+    degree_histogram_Sampling(create_PR_walk_graph(dataset),4,"Page Rank walk 3")
+    plt.savefig("Page Rank walk "+dataset + ".png")
     plt.show()
 
 G1 = []
 G2 = []
 G3 = []
 Random_Graph = [G1, G2, G3]
-Graph_Main = create_main_graph()
+
+#dataset = "edgelistMain"
+#Graph_Main = create_main_graph(dataset)
+
+
+
+#dataset = "email-Eu-core.txt"
+#dataset = "p2p-Gnutella04.txt"
+#dataset = "p2p-Gnutella08.txt"
+#dataset = "ca-HepTh.txt"
+#dataset = "ca-GrQc.txt"
+#dataset = "facebook_combined.txt"
+dataset = "p2p-Gnutella09.txt"
+
+Graph_Main = nx.read_edgelist(dataset, nodetype=int)
+
 
 
 Random_Graph = divide_graph(Graph_Main)
@@ -150,6 +165,6 @@ g1 = create_and_save_subgraph(G1, 1)
 g2 = create_and_save_subgraph(G2, 2)
 g3 = create_and_save_subgraph(G3, 3)
 
-show_random_graphs(Graph_Main)
-show_random_walk_graphs(Graph_Main)
-show_PR_walk_graphs(Graph_Main)
+show_random_graphs(Graph_Main,dataset)
+show_random_walk_graphs(Graph_Main,dataset)
+show_PR_walk_graphs(Graph_Main,dataset)

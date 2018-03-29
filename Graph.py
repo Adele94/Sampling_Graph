@@ -12,20 +12,16 @@ from collections import defaultdict
 from scipy import stats
 
 """
-#simple create
-def create_main_graph():
-    Graph_Main= nx.dense_gnm_random_graph(20, 100)
-    nx.write_edgelist(Graph_Main,"data/input/"+ "edgelistMain")
-    Graph_Main=nx.read_edgelist("data/input/"+"edgelistMain")
-    return Graph_Main
-"""
-
-def create_main_graph(dataset):
+#simple create (random graph)
+def sampling(dataset):
     g_partition = nx.Graph()
     g_partition = nx.random_partition_graph([10, 10, 10, 1], 0.25, 0.5, False)
     nx.write_edgelist(g_partition,"data/input/"+dataset ,data = False)
     g_partition=nx.read_edgelist("data/input/"+dataset,nodetype= int)
     return g_partition
+
+"""
+
 
 def divide_graph(Graph_Main):
     for i in Graph_Main.edges():
@@ -39,12 +35,14 @@ def create_and_save_subgraph(G1, k):
     nx.write_edgelist(g1, "edgelist %s" % k)
     return g1
 
-def sampling(dataset):
+
+
+def RWsampling(dataset):
     G = nx.Graph()
-    G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
+    G = nx.read_edgelist("data/input/" + dataset, nodetype=int)
     return list(random_walk(graph=G, size=1000))
 
-def PRsampling(dataset):
+def PRWsampling(dataset):
     G = nx.Graph()
     G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
     return list(page_rank_sampling(G,size = 1000))
@@ -62,6 +60,8 @@ def ESisampling(dataset):
     for j, fraction in enumerate(range(1, 10)):
         fraction = float(fraction) / 10.0
     return create_ESi_graph(G,fraction)
+
+
 
 def create_ff_graph(graph, sampling_fraction, geometric_dist_param=0.7):
     sampled_graph = nx.Graph()
@@ -112,7 +112,6 @@ def create_ff_graph(graph, sampling_fraction, geometric_dist_param=0.7):
 
     return sampled_graph
 
-
 def create_ESi_graph(graph, sampling_fraction):
     sampled_graph = nx.Graph()
 
@@ -134,7 +133,23 @@ def create_ESi_graph(graph, sampling_fraction):
                 sampled_graph.add_edge(u, v)
 
     return sampled_graph
-    
+
+def create_random_walk_graph(dataset):
+    G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
+    my_graph= []
+    samp = RWsampling(dataset)
+    for a in samp:
+        my_graph.append(G.degree()[a])
+    return my_graph
+
+
+def create_PR_walk_graph(dataset):
+    G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
+    my_graph= []
+    samp = PRWsampling(dataset)
+    for a in samp:
+        my_graph.append(G.degree()[a])
+    return my_graph
 
 
 def degree_histogram(G,k,name):
@@ -164,9 +179,6 @@ def degree_histogram(G,k,name):
     """
     plt.subplots_adjust(top = 0.8, hspace=0.6,wspace=0.4)
 
-
-
-
 def degree_histogram_Sampling(G,k,name):
     degree_sequence = sorted(G, reverse=True)  # degree sequence
     degreeCount = collections.Counter(degree_sequence)
@@ -181,29 +193,94 @@ def degree_histogram_Sampling(G,k,name):
     ax.set_xticklabels(deg)
     plt.subplots_adjust(top = 0.8,hspace=0.6,wspace=0.4)
 
-def create_random_walk_graph(dataset):
-    G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
-    my_graph= []
-    samp = sampling(dataset)
-    for a in samp:
-        my_graph.append(G.degree()[a])
-    return my_graph
 
-def create_PR_walk_graph(dataset):
-    G = nx.read_edgelist("data/input/"+dataset, nodetype=int)
-    my_graph= []
-    samp = PRsampling(dataset)
-    for a in samp:
-        my_graph.append(G.degree()[a])
-    return my_graph
 
-def show_random_graphs(Graph_Main,dataset):
+
+def degree_cdf(graph):  # Degree distribution
+    nodes = graph.nodes()
+    num_nodes = float(graph.number_of_nodes())
+
+    dist = defaultdict(int)
+
+    for n in nodes:
+        num_neighbors = len(graph.neighbors(n))
+        if num_neighbors > 0:
+            dist[num_neighbors] += 1
+
+    cdf = []
+    s = 0.0
+    na = 1.0
+    for k in sorted(dist.keys()):
+        s += float(dist[k]) / num_nodes
+        na -= float(dist[k]) / num_nodes
+        cdf.append(s)
+
+    return np.asarray(cdf)
+
+def clus_coeff_cdf(graph):   # Clustering coefficient distribution
+    nodes = graph.nodes()
+    clus_c = nx.clustering(graph)
+
+    dist = defaultdict(int)
+    num_node_ge_one = 0
+    for n in nodes:
+        num_neighbors = len(graph.neighbors(n))
+        if num_neighbors > 1:
+            cc = np.round(clus_c[n], 2)
+            dist[cc] += 1
+            num_node_ge_one += 1
+
+    cdf = []
+    num_node_ge_one = float(num_node_ge_one)
+    s = 0.0
+    for k in sorted(dist.keys()):
+        s += float(dist[k]) / num_node_ge_one
+        cdf.append(s)
+
+    return np.asarray(cdf)
+
+def hop_cdf(graph):   # Path length distribution or hop disribution
+    nodes = graph.number_of_nodes()
+    paths = nx.shortest_path_length(graph)
+
+    dist = defaultdict(int)
+
+    for u in paths.keys():
+        for v in paths[u].keys():
+            dist[paths[u][v]] += 1
+
+    cdf = []
+    for k in sorted(dist.keys()):
+        cdf.append(float(dist[k]) / (nodes * nodes))
+
+    return np.asarray(cdf)
+
+def eigenvalues(graph):
+    try:
+        import numpy.linalg as linal
+        eigenvalues = linal.eigvals
+    except ImportError:
+        raise ImportError("numpy can not be imported.")
+
+    L = nx.normalized_laplacian_matrix(graph)
+    eigen_values = eigenvalues(L.A)
+
+    return sorted(eigen_values, reverse=True)[:25]
+
+def normalized_L1(p, q):  #normalized L1 distance
+    size = len(p)
+    return sum([float(np.abs(p[i] - q[i])) / float(p[i]) for i in range(size)]) / float(size)
+
+
+
+
+def show_NS_graphs(Graph_Main, dataset):
     plt.suptitle("Random division \n dataset: " + dataset)
     degree_histogram(Graph_Main,1,"Main Graph")
     degree_histogram(g1,2,"First Graph")
     degree_histogram(g2,3,"Second Graph")
     degree_histogram(g3,4,"Third Graph")
-    plt.savefig("data/output/Random/"+"Random "+dataset + ".png")
+    plt.savefig("data/output/NS/"+"Random "+dataset + ".png")
     plt.show()
 
 def show_random_walk_graphs(Graph_Main,dataset):
@@ -249,26 +326,179 @@ G3 = []
 Random_Graph = [G1, G2, G3]
 
 #dataset = "edgelistMain"
-#Graph_Main = create_main_graph(dataset)
+#Graph_Main = Nsampling(dataset)
 
 
-#dataset = "email-Eu-core.txt"
+dataset = "email-Eu-core.txt"
 #dataset = "p2p-Gnutella04.txt"
 #dataset = "p2p-Gnutella08.txt"
 #dataset = "ca-HepTh.txt"
 #dataset = "ca-GrQc.txt"
-dataset = "facebook_combined.txt"
+#dataset = "facebook_combined.txt"
 #dataset = "p2p-Gnutella09.txt"
 
 Graph_Main = nx.read_edgelist("data/input/"+dataset, nodetype=int)
+
 
 Random_Graph = divide_graph(Graph_Main)
 g1 = create_and_save_subgraph(G1, 1)
 g2 = create_and_save_subgraph(G2, 2)
 g3 = create_and_save_subgraph(G3, 3)
 
-show_FF_graphs(Graph_Main,dataset)
+
+degree_cdf_graph = degree_cdf(Graph_Main)
+cc_cdf_graph = clus_coeff_cdf(Graph_Main)
+ev_graph = eigenvalues(Graph_Main)
+
+print ('Eigen Values Computed')
+
+deg_mean = np.zeros((5, 9))
+cc_mean = np.zeros((5, 9))
+ev_mean = np.zeros((5, 9))  # FF, ESi, Corex, Corex_R, Corex_S, RolX, GLRD-S, GLRD-D
+
+print ('Forest Fire')
+for j, fraction in enumerate(range(1, 10)):
+    fraction = float(fraction) / 10.0
+    print ('Fraction:', fraction)
+    deg = []
+    cc = []
+    ev = []
+
+    for iter_no in range(5):
+        ff_sampled_graph = FFsampling(dataset)
+        degree_cdf_ff = degree_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(degree_cdf_ff, degree_cdf_graph)  #ks_2samp - Computes the Kolmogorov-Smirnov statistic on 2 samples.
+        deg.append(D)
+
+        cc_cdf_ff = clus_coeff_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(cc_cdf_ff, cc_cdf_graph)
+        cc.append(D)
+
+        ev_ff = eigenvalues(ff_sampled_graph)
+        l1 = normalized_L1(ev_graph, ev_ff)
+        ev.append(l1)
+
+    deg_mean[0][j] = np.mean(deg)
+    cc_mean[0][j] = np.mean(cc)
+    ev_mean[0][j] = np.mean(ev)
+
+print ('Induced Edges')
+for j, fraction in enumerate(range(1, 10)):
+        fraction = float(fraction) / 10.0
+        print ('Fraction:', fraction)
+        deg = []
+        cc = []
+        ev = []
+
+        for iter_no in range(5):
+            ff_sampled_graph = ESisampling(dataset)
+
+            degree_cdf_ff = degree_cdf(ff_sampled_graph)
+            D, p = stats.ks_2samp(degree_cdf_ff, degree_cdf_graph)
+            deg.append(D)
+
+            cc_cdf_ff = clus_coeff_cdf(ff_sampled_graph)
+            D, p = stats.ks_2samp(cc_cdf_ff, cc_cdf_graph)
+            cc.append(D)
+
+            ev_ff = eigenvalues(ff_sampled_graph)
+            l1 = normalized_L1(ev_graph, ev_ff)
+            ev.append(l1)
+
+        deg_mean[1][j] = np.mean(deg)
+        cc_mean[1][j] = np.mean(cc)
+        ev_mean[1][j] = np.mean(ev)
+
+"""
+print ('Random walk')
+for j, fraction in enumerate(range(1, 10)):
+    fraction = float(fraction) / 10.0
+    print ('Fraction:', fraction)
+    deg = []
+    cc = []
+    ev = []
+
+    for iter_no in range(5):
+        ff_sampled_graph = RWRW(create_random_walk_graph(dataset))
+        degree_cdf_ff = degree_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(degree_cdf_ff, degree_cdf_graph)  #ks_2samp - Computes the Kolmogorov-Smirnov statistic on 2 samples.
+        deg.append(D)
+
+        cc_cdf_ff = clus_coeff_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(cc_cdf_ff, cc_cdf_graph)
+        cc.append(D)
+
+        ev_ff = eigenvalues(ff_sampled_graph)
+        l1 = normalized_L1(ev_graph, ev_ff)
+        ev.append(l1)
+
+    deg_mean[2][j] = np.mean(deg)
+    cc_mean[2][j] = np.mean(cc)
+    ev_mean[2][j] = np.mean(ev)
+"""
+print ('Page Rank walk')
+"""
+
+for j, fraction in enumerate(range(1, 10)):
+    fraction = float(fraction) / 10.0
+    print ('Fraction:', fraction)
+    deg = []
+    cc = []
+    ev = []
+
+    for iter_no in range(5):
+        ff_sampled_graph = PRWsampling(dataset)
+        degree_cdf_ff = degree_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(degree_cdf_ff, degree_cdf_graph)  #ks_2samp - Computes the Kolmogorov-Smirnov statistic on 2 samples.
+        deg.append(D)
+
+        cc_cdf_ff = clus_coeff_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(cc_cdf_ff, cc_cdf_graph)
+        cc.append(D)
+
+        ev_ff = eigenvalues(ff_sampled_graph)
+        l1 = normalized_L1(ev_graph, ev_ff)
+        ev.append(l1)
+
+    deg_mean[3][j] = np.mean(deg)
+    cc_mean[3][j] = np.mean(cc)
+    ev_mean[3][j] = np.mean(ev)
+"""
+
+
+print ('Node')
+for j, fraction in enumerate(range(1, 10)):
+    fraction = float(fraction) / 10.0
+    print ('Fraction:', fraction)
+    deg = []
+    cc = []
+    ev = []
+
+    for iter_no in range(5):
+        ff_sampled_graph = g1
+        degree_cdf_ff = degree_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(degree_cdf_ff, degree_cdf_graph)  #ks_2samp - Computes the Kolmogorov-Smirnov statistic on 2 samples.
+        deg.append(D)
+
+        cc_cdf_ff = clus_coeff_cdf(ff_sampled_graph)
+        D, p = stats.ks_2samp(cc_cdf_ff, cc_cdf_graph)
+        cc.append(D)
+
+        ev_ff = eigenvalues(ff_sampled_graph)
+        l1 = normalized_L1(ev_graph, ev_ff)
+        ev.append(l1)
+
+    deg_mean[4][j] = np.mean(deg)
+    cc_mean[4][j] = np.mean(cc)
+    ev_mean[4][j] = np.mean(ev)
+
+
+np.savetxt('KS-Degree.txt', deg_mean) # Degree distribution
+np.savetxt('KS-CC.txt', cc_mean)  # Clustering coefficient distribution
+np.savetxt('KS-EV.txt', ev_mean)  # Eigenvalue
+
+#show_FF_graphs(Graph_Main,dataset)
 #show_ESi_graphs(Graph_Main,dataset)
-#show_random_graphs(Graph_Main,dataset)
+#show_NS_graphs(Graph_Main,dataset)
 #show_random_walk_graphs(Graph_Main,dataset)
 #show_PR_walk_graphs(Graph_Main,dataset)

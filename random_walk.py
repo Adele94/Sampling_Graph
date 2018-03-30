@@ -19,17 +19,17 @@ def random_walk(graph, start_node=None, size=-1, metropolized=False):
     :return: サンプリングしたノード列
     """
     if start_node is None:
-        start_node = random.choice(graph.nodes())
+        start_node = random.choice(list(graph.nodes()))
 
     v = start_node
     for c in itertools.count():
         if c == size:
             return
         if metropolized:
-            candidate = random.choice(graph.neighbors(v))
+            candidate = random.choice(list(graph.neighbors(v)))
             v = candidate if (random.random() < float(graph.degree(v)) / graph.degree(candidate)) else v
         else:
-            v = random.choice(graph.neighbors(v))
+            v = random.choice(list(graph.neighbors(v)))
 
         yield v
 

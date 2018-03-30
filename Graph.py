@@ -36,7 +36,6 @@ def create_and_save_subgraph(G1, k):
     return g1
 
 
-
 def RWsampling(dataset):
     G = nx.Graph()
     G = nx.read_edgelist("data/input/" + dataset, nodetype=int)
@@ -153,11 +152,8 @@ def create_PR_walk_graph(dataset):
 
 
 def degree_histogram(G,k,name):
-    Gdeg = []
-    for key in G.degree().keys():
-        Gdeg.append(G.degree()[key])
 
-    degree_sequence = sorted(Gdeg, reverse=True)  # degree sequence
+    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
     degreeCount = collections.Counter(degree_sequence)
     deg, cnt = zip(*degreeCount.items())
     ax= plt.subplot(2,2,k)
@@ -180,6 +176,7 @@ def degree_histogram(G,k,name):
     plt.subplots_adjust(top = 0.8, hspace=0.6,wspace=0.4)
 
 def degree_histogram_Sampling(G,k,name):
+    print (G)
     degree_sequence = sorted(G, reverse=True)  # degree sequence
     degreeCount = collections.Counter(degree_sequence)
     deg, cnt = zip(*degreeCount.items())
@@ -203,7 +200,7 @@ def degree_cdf(graph):  # Degree distribution
     dist = defaultdict(int)
 
     for n in nodes:
-        num_neighbors = len(graph.neighbors(n))
+        num_neighbors = len(list(graph.neighbors(n)))
         if num_neighbors > 0:
             dist[num_neighbors] += 1
 
@@ -224,7 +221,7 @@ def clus_coeff_cdf(graph):   # Clustering coefficient distribution
     dist = defaultdict(int)
     num_node_ge_one = 0
     for n in nodes:
-        num_neighbors = len(graph.neighbors(n))
+        num_neighbors = len(list(graph.neighbors(n)))
         if num_neighbors > 1:
             cc = np.round(clus_c[n], 2)
             dist[cc] += 1
@@ -329,10 +326,10 @@ Random_Graph = [G1, G2, G3]
 #Graph_Main = Nsampling(dataset)
 
 
-dataset = "email-Eu-core.txt"
+#dataset = "email-Eu-core.txt"
 #dataset = "p2p-Gnutella04.txt"
 #dataset = "p2p-Gnutella08.txt"
-#dataset = "ca-HepTh.txt"
+dataset = "ca-HepTh.txt"
 #dataset = "ca-GrQc.txt"
 #dataset = "facebook_combined.txt"
 #dataset = "p2p-Gnutella09.txt"
@@ -356,6 +353,7 @@ deg_mean = np.zeros((5, 9))
 cc_mean = np.zeros((5, 9))
 ev_mean = np.zeros((5, 9))  # FF, ESi, Corex, Corex_R, Corex_S, RolX, GLRD-S, GLRD-D
 
+"""
 print ('Forest Fire')
 for j, fraction in enumerate(range(1, 10)):
     fraction = float(fraction) / 10.0
@@ -409,6 +407,7 @@ for j, fraction in enumerate(range(1, 10)):
         cc_mean[1][j] = np.mean(cc)
         ev_mean[1][j] = np.mean(ev)
 
+"""
 """
 print ('Random walk')
 for j, fraction in enumerate(range(1, 10)):
@@ -467,6 +466,8 @@ for j, fraction in enumerate(range(1, 10)):
 
 
 print ('Node')
+"""
+
 for j, fraction in enumerate(range(1, 10)):
     fraction = float(fraction) / 10.0
     print ('Fraction:', fraction)
@@ -496,9 +497,10 @@ for j, fraction in enumerate(range(1, 10)):
 np.savetxt('KS-Degree.txt', deg_mean) # Degree distribution
 np.savetxt('KS-CC.txt', cc_mean)  # Clustering coefficient distribution
 np.savetxt('KS-EV.txt', ev_mean)  # Eigenvalue
+"""
 
 #show_FF_graphs(Graph_Main,dataset)
 #show_ESi_graphs(Graph_Main,dataset)
-#show_NS_graphs(Graph_Main,dataset)
-#show_random_walk_graphs(Graph_Main,dataset)
-#show_PR_walk_graphs(Graph_Main,dataset)
+show_NS_graphs(Graph_Main,dataset)
+show_random_walk_graphs(Graph_Main,dataset)
+show_PR_walk_graphs(Graph_Main,dataset)

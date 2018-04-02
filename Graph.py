@@ -10,6 +10,8 @@ from util import *
 import argparse
 from collections import defaultdict
 from scipy import stats
+import csv
+import pandas as pd
 
 """
 #simple create (random graph)
@@ -345,16 +347,23 @@ degree_cdf_graph = degree_cdf(Graph_Main)
 cc_cdf_graph = clus_coeff_cdf(Graph_Main)
 ev_graph = eigenvalues(Graph_Main)
 
+"""
 
 print ('Eigen Values Computed')
 
-deg_mean = np.zeros((5, 9))
-cc_mean = np.zeros((5, 9))
-ev_mean = np.zeros((5, 9))  # FF, ESi, Corex, Corex_R, Corex_S, RolX, GLRD-S, GLRD-D
+deg_mean = np.zeros((6, 10))
+cc_mean = np.zeros((6, 10))
+ev_mean = np.zeros((6, 10))  # FF, ESi, Corex, Corex_R, Corex_S, RolX, GLRD-S, GLRD-D
 
+size_fraction = 10
+
+for j in range(1, size_fraction):
+    deg_mean[0][j] =int(((j+1) / size_fraction) * Graph_Main.number_of_nodes())
+    cc_mean[0][j] = deg_mean[0][j]
+    ev_mean[0][j] = deg_mean[0][j]
 
 print ('Forest Fire')
-for j, fraction in enumerate(range(1, 10)):
+for j, fraction in enumerate(range(1, size_fraction+1)):
     fraction = float(fraction) / 10.0
     print ('Fraction:', fraction)
     deg = []
@@ -375,12 +384,12 @@ for j, fraction in enumerate(range(1, 10)):
         l1 = normalized_L1(ev_graph, ev_ff)
         ev.append(l1)
 
-    deg_mean[0][j] = np.mean(deg)
-    cc_mean[0][j] = np.mean(cc)
-    ev_mean[0][j] = np.mean(ev)
+    deg_mean[1][j] = np.mean(deg)
+    cc_mean[1][j] = np.mean(cc)
+    ev_mean[1][j] = np.mean(ev)
 
 print ('Induced Edges')
-for j, fraction in enumerate(range(1, 10)):
+for j, fraction in enumerate(range(1, size_fraction+1)):
         fraction = float(fraction) / 10.0
         print ('Fraction:', fraction)
         deg = []
@@ -402,13 +411,13 @@ for j, fraction in enumerate(range(1, 10)):
             l1 = normalized_L1(ev_graph, ev_ff)
             ev.append(l1)
 
-        deg_mean[1][j] = np.mean(deg)
-        cc_mean[1][j] = np.mean(cc)
-        ev_mean[1][j] = np.mean(ev)
+        deg_mean[2][j] = np.mean(deg)
+        cc_mean[2][j] = np.mean(cc)
+        ev_mean[2][j] = np.mean(ev)
 
 
 print ('Random walk')
-for j, fraction in enumerate(range(1, 10)):
+for j, fraction in enumerate(range(1, size_fraction+1)):
     fraction = float(fraction) / 10.0
     print ('Fraction:', fraction)
     deg = []
@@ -429,12 +438,12 @@ for j, fraction in enumerate(range(1, 10)):
         l1 = normalized_L1(ev_graph, ev_ff)
         ev.append(l1)
 
-    deg_mean[2][j] = np.mean(deg)
-    cc_mean[2][j] = np.mean(cc)
-    ev_mean[2][j] = np.mean(ev)
+    deg_mean[3][j] = np.mean(deg)
+    cc_mean[3][j] = np.mean(cc)
+    ev_mean[3][j] = np.mean(ev)
 
 print ('Page Rank walk')
-for j, fraction in enumerate(range(1, 10)):
+for j, fraction in enumerate(range(1, size_fraction+1)):
     fraction = float(fraction) / 10.0
     print ('Fraction:', fraction)
     deg = []
@@ -456,15 +465,15 @@ for j, fraction in enumerate(range(1, 10)):
         l1 = normalized_L1(ev_graph, ev_ff)
         ev.append(l1)
 
-    deg_mean[3][j] = np.mean(deg)
-    cc_mean[3][j] = np.mean(cc)
-    ev_mean[3][j] = np.mean(ev)
+    deg_mean[4][j] = np.mean(deg)
+    cc_mean[4][j] = np.mean(cc)
+    ev_mean[4][j] = np.mean(ev)
 
 
 print ('Node')
 
 
-for j, fraction in enumerate(range(1, 10)):
+for j, fraction in enumerate(range(1, size_fraction+1)):
     fraction = float(fraction) / 10.0
     print ('Fraction:', fraction)
     deg = []
@@ -485,18 +494,58 @@ for j, fraction in enumerate(range(1, 10)):
         l1 = normalized_L1(ev_graph, ev_ff)
         ev.append(l1)
 
-    deg_mean[4][j] = np.mean(deg)
-    cc_mean[4][j] = np.mean(cc)
-    ev_mean[4][j] = np.mean(ev)
+    deg_mean[5][j] = np.mean(deg)
+    cc_mean[5][j] = np.mean(cc)
+    ev_mean[5][j] = np.mean(ev)
+df = pd.DataFrame(deg_mean)
+dc = pd.DataFrame(cc_mean)
+de = pd.DataFrame(ev_mean)
+df.to_csv("Degree.csv", header="Errors")
+dc.to_csv("CC.csv", header="Errors")
+de.to_csv("Ev.csv", header="Errors")
+
+"""
+
+def error_graph(loaded_csv, title):
+    loaded_csv.head()
+    table = loaded_csv
+    x = table.values[0 ,1:]
+    y1 = table.values[1 ,1:]
+    y2 = table.values[2 ,1:]
+    y3 = table.values[3 ,1:]
+    y4 = table.values[4 ,1:]
+    y5 = table.values[5 ,1:]
+    #plt.suptitle("Error graph \n " + title)
+    fig, ax = plt.subplots()
+    ax.plot(x,y1, color="blue", label="Forest Fire")
+    ax.plot(x,y2, color="red", label="Induced Edges")
+    ax.plot(x,y3, color="green", label="Random walk")
+    ax.plot(x,y4, color="black", label="Page Rank walk")
+    ax.plot(x,y5, color="yellow", label="Node")
+
+    plt.savefig("data/output/Errors/"+title+".png")
+    ax.set_xlabel("fraction")
+    # подпись у вертикальной оси y
+    ax.set_ylabel("error")
+    ax.legend()
+    plt.show()
 
 
-np.savetxt("data/metrics/"+'KS-Degree.txt', deg_mean) # Degree distribution
-np.savetxt("data/metrics/"+'KS-CC.txt', cc_mean)  # Clustering coefficient distribution
-np.savetxt("data/metrics/"+'KS-EV.txt', ev_mean)  # Eigenvalue
+loaded_csv1 = pd.read_csv("Degree.csv")
+loaded_csv2 = pd.read_csv("CC.csv")
+loaded_csv3 = pd.read_csv("Ev.csv")
+error_graph(loaded_csv1, "Degree")
+error_graph(loaded_csv2, "CC")
+error_graph(loaded_csv3, "Ev")
 
-show_FF_graphs(Graph_Main,dataset)
-show_ESi_graphs(Graph_Main,dataset)
-show_NS_graphs(Graph_Main,dataset)
-show_random_walk_graphs(Graph_Main,dataset)
-show_PR_walk_graphs(Graph_Main,dataset)
+
+#np.savetxt("data/metrics/"+'KS-Degree.txt', deg_mean) # Degree distribution
+#np.savetxt("data/metrics/"+'KS-CC.txt', cc_mean)  # Clustering coefficient distribution
+#np.savetxt("data/metrics/"+'KS-EV.txt', ev_mean)  # Eigenvalue
+
+#show_FF_graphs(Graph_Main,dataset)
+#show_ESi_graphs(Graph_Main,dataset)
+#show_NS_graphs(Graph_Main,dataset)
+#show_random_walk_graphs(Graph_Main,dataset)
+#show_PR_walk_graphs(Graph_Main,dataset)
 

@@ -134,15 +134,19 @@ def create_ESi_graph(graph, sampling_fraction):
     return sampled_graph
 
 def create_random_walk_graph(dataset):
+    G = nx.read_edgelist("data/input/" +dataset, nodetype=int)
     my_graph = nx.Graph()
     samp = RWsampling(dataset)
-    my_graph.add_path(samp)
+    for a in samp:
+        my_graph.add_path(G.adj[a])
     return my_graph
 
 def create_PR_walk_graph(dataset):
+    G = nx.read_edgelist("data/input/" +dataset, nodetype=int)
     my_graph = nx.Graph()
     samp = PRWsampling(dataset)
-    my_graph.add_path(samp)
+    for a in samp:
+        my_graph.add_path(G.adj[a])
     return my_graph
 
 
@@ -290,7 +294,7 @@ def show_PR_walk_graphs(Graph_Main,dataset):
     degree_histogram(create_PR_walk_graph(dataset),2,"Page Rank walk 1")
     degree_histogram(create_PR_walk_graph(dataset),3,"Page Rank walk 2")
     degree_histogram(create_PR_walk_graph(dataset),4,"Page Rank walk 3")
-    plt.savefig("data/output/PRW/"+"Page Rank walk "+dataset + ".png")
+    plt.savefig("data/output/PRW/"+"Page Rank walk "+ dataset + ".png")
     plt.show()
 
 def show_FF_graphs(Graph_Main,dataset):
@@ -326,7 +330,7 @@ dataset = "email-Eu-core.txt"
 #dataset = "p2p-Gnutella08.txt"
 #dataset = "ca-HepTh.txt"
 #dataset = "ca-GrQc.txt"
-#dataset = "facebook_combined.txt"
+#dataset = "p2p-Gnutella25.txt"
 #dataset = "p2p-Gnutella09.txt"
 
 Graph_Main = nx.read_edgelist("data/input/"+dataset, nodetype=int)
@@ -336,7 +340,6 @@ Random_Graph = divide_graph(Graph_Main)
 g1 = create_and_save_subgraph(G1, 1)
 g2 = create_and_save_subgraph(G2, 2)
 g3 = create_and_save_subgraph(G3, 3)
-
 
 degree_cdf_graph = degree_cdf(Graph_Main)
 cc_cdf_graph = clus_coeff_cdf(Graph_Main)
@@ -403,8 +406,6 @@ for j, fraction in enumerate(range(1, 10)):
         cc_mean[1][j] = np.mean(cc)
         ev_mean[1][j] = np.mean(ev)
 
-"""
-
 
 print ('Random walk')
 for j, fraction in enumerate(range(1, 10)):
@@ -459,7 +460,6 @@ for j, fraction in enumerate(range(1, 10)):
     cc_mean[3][j] = np.mean(cc)
     ev_mean[3][j] = np.mean(ev)
 
-"""""
 
 print ('Node')
 

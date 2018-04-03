@@ -5,7 +5,6 @@ import numpy as np
 import itertools
 import random
 
-from util import normalized_mean_square_error
 
 
 def random_walk(graph, start_node=None, size=-1, metropolized=False):

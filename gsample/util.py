@@ -1,3 +1,7 @@
+import random as rnd
+
+import sklearn
+
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -152,15 +156,35 @@ def error_graph(loaded_csv, title):
     plt.savefig("gsample/data/output/Errors/"+title+".png")
     plt.show()
 
+def error_graph2(loaded_csv, title,count, title_set):
+    loaded_csv.head()
+    table = loaded_csv
+    y = {}
+    x = table.values[0 ,1:]
+    for i in range(count):
+        y[i] = table.values[i+1 ,1:]
+
+    fig, ax = plt.subplots()
+    for i in range(count):
+        ax.plot(x,y[i], label=title_set[i])
+
+    ax.set_xlabel("fraction")
+    ax.set_ylabel("error")
+    ax.legend()
+    plt.suptitle("Error graph \n " + title)
+    plt.savefig("gsample/data/output/Errors/"+title+".png")
+    plt.show()
+
 def separate_file(filename, Ns):
         SepList = []
-        df = pd.read_csv(filename, delimiter = '\t' , dtype = int, comment = '#', header = None )
+        df = pd.read_csv(filename, delimiter = '\t' , dtype = int, comment = '#', header = None)
+        shuffled_df = sklearn.utils.shuffle(df)
         n = int((df.__len__() + 1) / Ns)
         for i in range(Ns - 1):
             a = []
-            dfm = df[i * n:(n + i * n)]
+            dfm = shuffled_df[i * n:(n + i * n)]
             SepList.append(dfm)
-        dfm = df[(Ns - 1) * n:]
+        dfm = shuffled_df[(Ns - 1) * n:]
         SepList.append(dfm)
         return SepList
 

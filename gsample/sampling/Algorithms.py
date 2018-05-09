@@ -28,3 +28,4 @@ def ESisampling(G,size_fraction):
     for j, fraction in enumerate(range(1,size_fraction)):
         fraction = float(fraction) / size_fraction
     return ESi(G,fraction)
+
